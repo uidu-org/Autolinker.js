@@ -27,8 +27,14 @@
 Autolinker.matcher.Url = Autolinker.Util.extend( Autolinker.matcher.Matcher, {
 
 <span id='Autolinker-matcher-Url-cfg-stripPrefix'>	/**
-</span>	 * @cfg {Boolean} stripPrefix (required)
-	 * @inheritdoc Autolinker#stripPrefix
+</span>	 * @cfg {Object} stripPrefix (required)
+	 *
+	 * The Object form of {@link Autolinker#cfg-stripPrefix}.
+	 */
+
+<span id='Autolinker-matcher-Url-cfg-stripTrailingSlash'>	/**
+</span>	 * @cfg {Boolean} stripTrailingSlash (required)
+	 * @inheritdoc Autolinker#stripTrailingSlash
 	 */
 
 
@@ -156,11 +162,13 @@ Autolinker.matcher.Url = Autolinker.Util.extend( Autolinker.matcher.Matcher, {
 	constructor : function( cfg ) {
 		Autolinker.matcher.Matcher.prototype.constructor.call( this, cfg );
 
-		this.stripPrefix = cfg.stripPrefix;
-
 		// @if DEBUG
-		if( this.stripPrefix == null ) throw new Error( &#39;`stripPrefix` cfg required&#39; );
+		if( cfg.stripPrefix == null ) throw new Error( &#39;`stripPrefix` cfg required&#39; );
+		if( cfg.stripTrailingSlash == null ) throw new Error( &#39;`stripTrailingSlash` cfg required&#39; );
 		// @endif
+
+		this.stripPrefix = cfg.stripPrefix;
+		this.stripTrailingSlash = cfg.stripTrailingSlash;
 	},
 
 
@@ -170,6 +178,7 @@ Autolinker.matcher.Url = Autolinker.Util.extend( Autolinker.matcher.Matcher, {
 	parseMatches : function( text ) {
 		var matcherRegex = this.matcherRegex,
 		    stripPrefix = this.stripPrefix,
+		    stripTrailingSlash = this.stripTrailingSlash,
 		    tagBuilder = this.tagBuilder,
 		    matches = [],
 		    match;
@@ -227,7 +236,8 @@ Autolinker.matcher.Url = Autolinker.Util.extend( Autolinker.matcher.Matcher, {
 				url                   : matchStr,
 				protocolUrlMatch      : protocolUrlMatch,
 				protocolRelativeMatch : !!protocolRelativeMatch,
-				stripPrefix           : stripPrefix
+				stripPrefix           : stripPrefix,
+				stripTrailingSlash    : stripTrailingSlash
 			} ) );
 		}
 

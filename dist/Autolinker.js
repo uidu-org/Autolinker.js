@@ -1,6 +1,6 @@
 /*!
  * Autolinker.js
- * 1.0.0
+ * 1.1.0
  *
  * Copyright(c) 2016 Gregory Jacobs <greg@greg-jacobs.com>
  * MIT License
@@ -137,7 +137,8 @@ var Autolinker = function( cfg ) {
 	this.hashtag = cfg.hashtag || false;
 	this.mention = cfg.mention || false;
 	this.newWindow = typeof cfg.newWindow === 'boolean' ? cfg.newWindow : true;
-	this.stripPrefix = typeof cfg.stripPrefix === 'boolean' ? cfg.stripPrefix : true;
+	this.stripPrefix = this.normalizeStripPrefixCfg( cfg.stripPrefix );
+	this.stripTrailingSlash = typeof cfg.stripTrailingSlash === 'boolean' ? cfg.stripTrailingSlash : true;
 
 	// Validate the value of the `mention` cfg
 	var mention = this.mention;
@@ -199,30 +200,43 @@ Autolinker.link = function( textOrHtml, options ) {
  *
  * Ex: 0.25.1
  */
-Autolinker.version = '1.0.0';
+Autolinker.version = '1.1.0';
 
 
 Autolinker.prototype = {
 	constructor : Autolinker,  // fix constructor property
 
 	/**
-	 * @cfg {Boolean/Object} [urls=true]
+	 * @cfg {Boolean/Object} [urls]
 	 *
 	 * `true` if URLs should be automatically linked, `false` if they should not
-	 * be.
+	 * be. Defaults to `true`.
 	 *
-	 * This option also accepts an Object form with 3 properties, to allow for
-	 * more customization of what exactly gets linked. All default to `true`:
+	 * Examples:
 	 *
-	 * @param {Boolean} schemeMatches `true` to match URLs found prefixed with a
-	 *   scheme, i.e. `http://google.com`, or `other+scheme://google.com`,
+	 *     urls: true
+	 *
+	 *     // or
+	 *
+	 *     urls: {
+	 *         schemeMatches : true,
+	 *         wwwMatches    : true,
+	 *         tldMatches    : true
+	 *     }
+	 *
+	 * As shown above, this option also accepts an Object form with 3 properties
+	 * to allow for more customization of what exactly gets linked. All default
+	 * to `true`:
+	 *
+	 * @cfg {Boolean} [urls.schemeMatches] `true` to match URLs found prefixed
+	 *   with a scheme, i.e. `http://google.com`, or `other+scheme://google.com`,
 	 *   `false` to prevent these types of matches.
-	 * @param {Boolean} wwwMatches `true` to match urls found prefixed with
+	 * @cfg {Boolean} [urls.wwwMatches] `true` to match urls found prefixed with
 	 *   `'www.'`, i.e. `www.google.com`. `false` to prevent these types of
 	 *   matches. Note that if the URL had a prefixed scheme, and
 	 *   `schemeMatches` is true, it will still be linked.
-	 * @param {Boolean} tldMatches `true` to match URLs with known top level
-	 *   domains (.com, .net, etc.) that are not prefixed with a scheme or
+	 * @cfg {Boolean} [urls.tldMatches] `true` to match URLs with known top
+	 *   level domains (.com, .net, etc.) that are not prefixed with a scheme or
 	 *   `'www.'`. This option attempts to match anything that looks like a URL
 	 *   in the given text. Ex: `google.com`, `asdf.org/?page=1`, etc. `false`
 	 *   to prevent these types of matches.
@@ -274,10 +288,47 @@ Autolinker.prototype = {
 	 */
 
 	/**
-	 * @cfg {Boolean} [stripPrefix=true]
+	 * @cfg {Boolean/Object} [stripPrefix]
 	 *
-	 * `true` if 'http://' or 'https://' and/or the 'www.' should be stripped
-	 * from the beginning of URL links' text, `false` otherwise.
+	 * `true` if 'http://' (or 'https://') and/or the 'www.' should be stripped
+	 * from the beginning of URL links' text, `false` otherwise. Defaults to
+	 * `true`.
+	 *
+	 * Examples:
+	 *
+	 *     stripPrefix: true
+	 *
+	 *     // or
+	 *
+	 *     stripPrefix: {
+	 *         scheme : true,
+	 *         www    : true
+	 *     }
+	 *
+	 * As shown above, this option also accepts an Object form with 2 properties
+	 * to allow for more customization of what exactly is prevented from being
+	 * displayed. Both default to `true`:
+	 *
+	 * @cfg {Boolean} [stripPrefix.scheme] `true` to prevent the scheme part of
+	 *   a URL match from being displayed to the user. Example:
+	 *   `'http://google.com'` will be displayed as `'google.com'`. `false` to
+	 *   not strip the scheme. NOTE: Only an `'http://'` or `'https://'` scheme
+	 *   will be removed, so as not to remove a potentially dangerous scheme
+	 *   (such as `'file://'` or `'javascript:'`)
+	 * @cfg {Boolean} [stripPrefix.www] www (Boolean): `true` to prevent the
+	 *   `'www.'` part of a URL match from being displayed to the user. Ex:
+	 *   `'www.google.com'` will be displayed as `'google.com'`. `false` to not
+	 *   strip the `'www'`.
+	 */
+
+	/**
+	 * @cfg {Boolean} [stripTrailingSlash=true]
+	 *
+	 * `true` to remove the trailing slash from URL matches, `false` to keep
+	 *  the trailing slash.
+	 *
+	 *  Example when `true`: `http://google.com/` will be displayed as
+	 *  `http://google.com`.
 	 */
 
 	/**
@@ -429,6 +480,31 @@ Autolinker.prototype = {
 				schemeMatches : typeof urls.schemeMatches === 'boolean' ? urls.schemeMatches : true,
 				wwwMatches    : typeof urls.wwwMatches === 'boolean'    ? urls.wwwMatches    : true,
 				tldMatches    : typeof urls.tldMatches === 'boolean'    ? urls.tldMatches    : true
+			};
+		}
+	},
+
+
+	/**
+	 * Normalizes the {@link #stripPrefix} config into an Object with 2
+	 * properties: `scheme`, and `www` - both Booleans.
+	 *
+	 * See {@link #stripPrefix} config for details.
+	 *
+	 * @private
+	 * @param {Boolean/Object} stripPrefix
+	 * @return {Object}
+	 */
+	normalizeStripPrefixCfg : function( stripPrefix ) {
+		if( stripPrefix == null ) stripPrefix = true;  // default to `true`
+
+		if( typeof stripPrefix === 'boolean' ) {
+			return { scheme: stripPrefix, www: stripPrefix };
+
+		} else {  // object form
+			return {
+				scheme : typeof stripPrefix.scheme === 'boolean' ? stripPrefix.scheme : true,
+				www    : typeof stripPrefix.www === 'boolean'    ? stripPrefix.www    : true
 			};
 		}
 	},
@@ -728,7 +804,7 @@ Autolinker.prototype = {
 				new matchersNs.Email( { tagBuilder: tagBuilder } ),
 				new matchersNs.Phone( { tagBuilder: tagBuilder } ),
 				new matchersNs.Mention( { tagBuilder: tagBuilder, serviceName: this.mention } ),
-				new matchersNs.Url( { tagBuilder: tagBuilder, stripPrefix: this.stripPrefix } )
+				new matchersNs.Url( { tagBuilder: tagBuilder, stripPrefix: this.stripPrefix, stripTrailingSlash: this.stripTrailingSlash } )
 			];
 
 			return ( this.matchers = matchers );
@@ -2738,8 +2814,14 @@ Autolinker.match.Url = Autolinker.Util.extend( Autolinker.match.Match, {
 	 */
 
 	/**
-	 * @cfg {Boolean} stripPrefix (required)
-	 * @inheritdoc Autolinker#cfg-stripPrefix
+	 * @cfg {Object} stripPrefix (required)
+	 *
+	 * The Object form of {@link Autolinker#cfg-stripPrefix}.
+	 */
+
+	/**
+	 * @cfg {Boolean} stripTrailingSlash (required)
+	 * @inheritdoc Autolinker#cfg-stripTrailingSlash
 	 */
 
 
@@ -2756,22 +2838,33 @@ Autolinker.match.Url = Autolinker.Util.extend( Autolinker.match.Match, {
 		if( cfg.protocolUrlMatch == null ) throw new Error( '`protocolUrlMatch` cfg required' );
 		if( cfg.protocolRelativeMatch == null ) throw new Error( '`protocolRelativeMatch` cfg required' );
 		if( cfg.stripPrefix == null ) throw new Error( '`stripPrefix` cfg required' );
+		if( cfg.stripTrailingSlash == null ) throw new Error( '`stripTrailingSlash` cfg required' );
 
 		this.urlMatchType = cfg.urlMatchType;
 		this.url = cfg.url;
 		this.protocolUrlMatch = cfg.protocolUrlMatch;
 		this.protocolRelativeMatch = cfg.protocolRelativeMatch;
 		this.stripPrefix = cfg.stripPrefix;
+		this.stripTrailingSlash = cfg.stripTrailingSlash;
 	},
 
 
 	/**
 	 * @private
-	 * @property {RegExp} urlPrefixRegex
+	 * @property {RegExp} schemePrefixRegex
 	 *
-	 * A regular expression used to remove the 'http://' or 'https://' and/or the 'www.' from URLs.
+	 * A regular expression used to remove the 'http://' or 'https://' from
+	 * URLs.
 	 */
-	urlPrefixRegex: /^(https?:\/\/)?(www\.)?/i,
+	schemePrefixRegex: /^(https?:\/\/)?/i,
+
+	/**
+	 * @private
+	 * @property {RegExp} wwwPrefixRegex
+	 *
+	 * A regular expression used to remove the 'www.' from URLs.
+	 */
+	wwwPrefixRegex: /^(https?:\/\/)?(www\.)?/i,
 
 	/**
 	 * @private
@@ -2862,10 +2955,15 @@ Autolinker.match.Url = Autolinker.Util.extend( Autolinker.match.Match, {
 			// Strip off any protocol-relative '//' from the anchor text
 			anchorText = this.stripProtocolRelativePrefix( anchorText );
 		}
-		if( this.stripPrefix ) {
-			anchorText = this.stripUrlPrefix( anchorText );
+		if( this.stripPrefix.scheme ) {
+			anchorText = this.stripSchemePrefix( anchorText );
 		}
-		anchorText = this.removeTrailingSlash( anchorText );  // remove trailing slash, if there is one
+		if( this.stripPrefix.www ) {
+			anchorText = this.stripWwwPrefix( anchorText );
+		}
+		if( this.stripTrailingSlash ) {
+			anchorText = this.removeTrailingSlash( anchorText );  // remove trailing slash, if there is one
+		}
 
 		return anchorText;
 	},
@@ -2876,15 +2974,29 @@ Autolinker.match.Url = Autolinker.Util.extend( Autolinker.match.Match, {
 	// Utility Functionality
 
 	/**
-	 * Strips the URL prefix (such as "http://" or "https://") from the given text.
+	 * Strips the scheme prefix (such as "http://" or "https://") from the given
+	 * `url`.
 	 *
 	 * @private
-	 * @param {String} text The text of the anchor that is being generated, for which to strip off the
-	 *   url prefix (such as stripping off "http://")
-	 * @return {String} The `anchorText`, with the prefix stripped.
+	 * @param {String} url The text of the anchor that is being generated, for
+	 *   which to strip off the url scheme.
+	 * @return {String} The `url`, with the scheme stripped.
 	 */
-	stripUrlPrefix : function( text ) {
-		return text.replace( this.urlPrefixRegex, '' );
+	stripSchemePrefix : function( url ) {
+		return url.replace( this.schemePrefixRegex, '' );
+	},
+
+
+	/**
+	 * Strips the 'www' prefix from the given `url`.
+	 *
+	 * @private
+	 * @param {String} url The text of the anchor that is being generated, for
+	 *   which to strip off the 'www' if it exists.
+	 * @return {String} The `url`, with the 'www' stripped.
+	 */
+	stripWwwPrefix : function( url ) {
+		return url.replace( this.wwwPrefixRegex, '$1' );  // leave any scheme ($1), it one exists
 	},
 
 
@@ -3258,8 +3370,14 @@ Autolinker.matcher.Mention = Autolinker.Util.extend( Autolinker.matcher.Matcher,
 Autolinker.matcher.Url = Autolinker.Util.extend( Autolinker.matcher.Matcher, {
 
 	/**
-	 * @cfg {Boolean} stripPrefix (required)
-	 * @inheritdoc Autolinker#stripPrefix
+	 * @cfg {Object} stripPrefix (required)
+	 *
+	 * The Object form of {@link Autolinker#cfg-stripPrefix}.
+	 */
+
+	/**
+	 * @cfg {Boolean} stripTrailingSlash (required)
+	 * @inheritdoc Autolinker#stripTrailingSlash
 	 */
 
 
@@ -3387,9 +3505,11 @@ Autolinker.matcher.Url = Autolinker.Util.extend( Autolinker.matcher.Matcher, {
 	constructor : function( cfg ) {
 		Autolinker.matcher.Matcher.prototype.constructor.call( this, cfg );
 
-		this.stripPrefix = cfg.stripPrefix;
+		if( cfg.stripPrefix == null ) throw new Error( '`stripPrefix` cfg required' );
+		if( cfg.stripTrailingSlash == null ) throw new Error( '`stripTrailingSlash` cfg required' );
 
-		if( this.stripPrefix == null ) throw new Error( '`stripPrefix` cfg required' );
+		this.stripPrefix = cfg.stripPrefix;
+		this.stripTrailingSlash = cfg.stripTrailingSlash;
 	},
 
 
@@ -3399,6 +3519,7 @@ Autolinker.matcher.Url = Autolinker.Util.extend( Autolinker.matcher.Matcher, {
 	parseMatches : function( text ) {
 		var matcherRegex = this.matcherRegex,
 		    stripPrefix = this.stripPrefix,
+		    stripTrailingSlash = this.stripTrailingSlash,
 		    tagBuilder = this.tagBuilder,
 		    matches = [],
 		    match;
@@ -3456,7 +3577,8 @@ Autolinker.matcher.Url = Autolinker.Util.extend( Autolinker.matcher.Matcher, {
 				url                   : matchStr,
 				protocolUrlMatch      : protocolUrlMatch,
 				protocolRelativeMatch : !!protocolRelativeMatch,
-				stripPrefix           : stripPrefix
+				stripPrefix           : stripPrefix,
+				stripTrailingSlash    : stripTrailingSlash
 			} ) );
 		}
 
