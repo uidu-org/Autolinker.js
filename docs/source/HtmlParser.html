@@ -23,7 +23,7 @@
  * An HTML parser implementation which simply walks an HTML string and returns an array of
  * {@link Autolinker.htmlParser.HtmlNode HtmlNodes} that represent the basic HTML structure of the input string.
  *
- * Autolinker uses this to only link URLs/emails/Twitter handles within text nodes, effectively ignoring / &quot;walking
+ * Autolinker uses this to only link URLs/emails/mentions within text nodes, effectively ignoring / &quot;walking
  * around&quot; HTML tags.
  */
 Autolinker.htmlParser.HtmlParser = Autolinker.Util.extend( Object, {
@@ -46,7 +46,7 @@ Autolinker.htmlParser.HtmlParser = Autolinker.Util.extend( Object, {
 	htmlRegex : (function() {
 		var commentTagRegex = /!--([\s\S]+?)--/,
 		    tagNameRegex = /[0-9a-zA-Z][0-9a-zA-Z:]*/,
-		    attrNameRegex = /[^\s\0&quot;&#39;&gt;\/=\x01-\x1F\x7F]+/,   // the unicode range accounts for excluding control chars, and the delete char
+		    attrNameRegex = /[^\s&quot;&#39;&gt;\/=\x00-\x1F\x7F]+/,   // the unicode range accounts for excluding control chars, and the delete char
 		    attrValueRegex = /(?:&quot;[^&quot;]*?&quot;|&#39;[^&#39;]*?&#39;|[^&#39;&quot;=&lt;&gt;`\s]+)/, // double quoted, single quoted, or unquoted attribute values
 		    nameEqualsValueRegex = attrNameRegex.source + &#39;(?:\\s*=\\s*&#39; + attrValueRegex.source + &#39;)?&#39;;  // optional &#39;=[value]&#39;
 
@@ -86,7 +86,7 @@ Autolinker.htmlParser.HtmlParser = Autolinker.Util.extend( Object, {
 
 							// Zero or more attributes following the tag name
 							&#39;(?:&#39;,
-								&#39;\\s*&#39;,                // any number of whitespace chars before an attribute
+								&#39;(?:\\s+|\\b)&#39;,        // any number of whitespace chars before an attribute. NOTE: Using \s* here throws Chrome into an infinite loop for some reason, so using \s+|\b instead
 								nameEqualsValueRegex,  // attr=&quot;value&quot; (with optional =&quot;value&quot; part)
 							&#39;)*&#39;,
 
@@ -271,6 +271,7 @@ Autolinker.htmlParser.HtmlParser = Autolinker.Util.extend( Object, {
 		return new Autolinker.htmlParser.TextNode( { offset: offset, text: text } );
 	}
 
-} );</pre>
+} );
+</pre>
 </body>
 </html>

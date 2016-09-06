@@ -36,7 +36,7 @@ Autolinker.matcher.Email = Autolinker.Util.extend( Autolinker.matcher.Matcher, {
 	 */
 	matcherRegex : (function() {
 		var alphaNumericChars = Autolinker.RegexLib.alphaNumericCharsStr,
-		    emailRegex = new RegExp( &#39;[&#39; + alphaNumericChars + &#39;\\-;:&amp;=+$.,]+@&#39; ),  // something@ for email addresses (a.k.a. local-part)
+		    emailRegex = new RegExp( &#39;[&#39; + alphaNumericChars + &#39;\\-_\&#39;;:&amp;=+$.,]+@&#39; ),  // something@ for email addresses (a.k.a. local-part)
 			domainNameRegex = Autolinker.RegexLib.domainNameRegex,
 			tldRegex = Autolinker.RegexLib.tldRegex;  // match our known top level domains (TLDs)
 

@@ -25,10 +25,10 @@
  *
  * For example:
  *
- *     var input = &quot;...&quot;;  // string with URLs, Email Addresses, and Twitter Handles
+ *     var input = &quot;...&quot;;  // string with URLs, Email Addresses, and Mentions (Twitter, Instagram)
  *
  *     var linkedText = Autolinker.link( input, {
- *         replaceFn : function( autolinker, match ) {
+ *         replaceFn : function( match ) {
  *             console.log( &quot;href = &quot;, match.getAnchorHref() );
  *             console.log( &quot;text = &quot;, match.getAnchorText() );
  *
@@ -39,8 +39,8 @@
  *                 case &#39;email&#39; :
  *                     console.log( &quot;email: &quot;, match.getEmail() );
  *
- *                 case &#39;twitter&#39; :
- *                     console.log( &quot;twitter: &quot;, match.getTwitterHandle() );
+ *                 case &#39;mention&#39; :
+ *                     console.log( &quot;mention: &quot;, match.getMention() );
  *             }
  *         }
  *     } );
@@ -152,6 +152,32 @@ Autolinker.match.Match = Autolinker.Util.extend( Object, {
 	getAnchorText : Autolinker.Util.abstractMethod,
 
 
+<span id='Autolinker-match-Match-method-getCssClassSuffixes'>	/**
+</span>	 * Returns the CSS class suffix(es) for this match.
+	 *
+	 * A CSS class suffix is appended to the {@link Autolinker#className} in
+	 * the {@link Autolinker.AnchorTagBuilder} when a match is translated into
+	 * an anchor tag.
+	 *
+	 * For example, if {@link Autolinker#className} was configured as &#39;myLink&#39;,
+	 * and this method returns `[ &#39;url&#39; ]`, the final class name of the element
+	 * will become: &#39;myLink myLink-url&#39;.
+	 *
+	 * The match may provide multiple CSS class suffixes to be appended to the
+	 * {@link Autolinker#className} in order to facilitate better styling
+	 * options for different match criteria. See {@link Autolinker.match.Mention}
+	 * for an example.
+	 *
+	 * By default, this method returns a single array with the match&#39;s
+	 * {@link #getType type} name, but may be overridden by subclasses.
+	 *
+	 * @return {String[]}
+	 */
+	getCssClassSuffixes : function() {
+		return [ this.getType() ];
+	},
+
+
 <span id='Autolinker-match-Match-method-buildTag'>	/**
 </span>	 * Builds and returns an {@link Autolinker.HtmlTag} instance based on the
 	 * Match.
@@ -171,6 +197,7 @@ Autolinker.match.Match = Autolinker.Util.extend( Object, {
 		return this.tagBuilder.build( this );
 	}
 
-} );</pre>
+} );
+</pre>
 </body>
 </html>
