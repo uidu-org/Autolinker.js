@@ -81,7 +81,7 @@ Autolinker.matcher.Url = Autolinker.Util.extend( Autolinker.matcher.Matcher, {
 
 		    // Allow optional path, query string, and hash anchor, not ending in the following characters: &quot;?!:,.;&quot;
 		    // http://blog.codinghorror.com/the-problem-with-urls/
-		    urlSuffixRegex = new RegExp( &#39;[&#39; + alphaNumericCharsStr + &#39;\\-+&amp;@#/%=~_()|\&#39;$*\\[\\]?!:,.;]*[&#39; + alphaNumericCharsStr + &#39;\\-+&amp;@#/%=~_()|\&#39;$*\\[\\]]&#39; );
+		    urlSuffixRegex = new RegExp( &#39;[&#39; + alphaNumericCharsStr + &#39;\\-+&amp;@#/%=~_()|\&#39;$*\\[\\]?!:,.;\u2713]*[&#39; + alphaNumericCharsStr + &#39;\\-+&amp;@#/%=~_()|\&#39;$*\\[\\]\u2713]&#39; );
 
 		return new RegExp( [
 			&#39;(?:&#39;, // parens to cover match for scheme (optional), and domain
