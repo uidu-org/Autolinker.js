@@ -1,6 +1,6 @@
 /*!
  * Autolinker.js
- * 1.3.1
+ * 1.3.2
  *
  * Copyright(c) 2016 Gregory Jacobs <greg@greg-jacobs.com>
  * MIT License
@@ -240,7 +240,7 @@ Autolinker.parse = function( textOrHtml, options ) {
  *
  * Ex: 0.25.1
  */
-Autolinker.version = '1.3.1';
+Autolinker.version = '1.3.2';
 
 
 Autolinker.prototype = {
@@ -3737,7 +3737,7 @@ Autolinker.matcher.Url = Autolinker.Util.extend( Autolinker.matcher.Matcher, {
 
 		offset += res[1].length;
 		urlMatch = urlMatch.slice(res[1].length);
-		if (/^[^.A-Za-z:\/?#]/.test(urlMatch)) {
+		if (/^[^.A-Za-z0-9:\/?#]/.test(urlMatch)) {
 			return offset;
 		}
 
@@ -3745,6 +3745,7 @@ Autolinker.matcher.Url = Autolinker.Util.extend( Autolinker.matcher.Matcher, {
 	}
 
 } );
+
 /*global Autolinker */
 /*jshint scripturl:true */
 /**
