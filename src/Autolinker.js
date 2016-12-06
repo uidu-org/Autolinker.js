@@ -122,18 +122,6 @@ var Autolinker = function( cfg ) {
 	this.stripPrefix = this.normalizeStripPrefixCfg( cfg.stripPrefix );
 	this.stripTrailingSlash = typeof cfg.stripTrailingSlash === 'boolean' ? cfg.stripTrailingSlash : true;
 
-	// Validate the value of the `mention` cfg
-	var mention = this.mention;
-	if( mention !== false && mention !== 'twitter' && mention !== 'instagram' ) {
-		throw new Error( "invalid `mention` cfg - see docs" );
-	}
-
-	// Validate the value of the `hashtag` cfg
-	var hashtag = this.hashtag;
-	if( hashtag !== false && hashtag !== 'twitter' && hashtag !== 'facebook' && hashtag !== 'instagram' ) {
-		throw new Error( "invalid `hashtag` cfg - see docs" );
-	}
-
 	this.truncate = this.normalizeTruncateCfg( cfg.truncate );
 	this.className = cfg.className || '';
 	this.replaceFn = cfg.replaceFn || null;
